@@ -1,15 +1,13 @@
 <script setup lang="ts">
-import { ref } from "vue"
+import { onMounted, ref } from 'vue'
 import { useTheme } from 'vuetify'
 import ScrollToTop from '@core/components/ScrollToTop.vue'
 import initCore from '@core/initCore'
 import { initConfigStore, useConfigStore } from '@core/stores/config'
 import { hexToRgb } from '@core/utils/colorConverter'
+import PWAInstallPrompt from './components/PWAInstallPrompt.vue'
 
 const { global } = useTheme()
-
-// Install Prompt
-const deferredPrompt = ref<Event | null>(null)
 
 // ℹ️ Sync current theme with initial loader theme
 initCore()
@@ -17,31 +15,11 @@ initConfigStore()
 
 const configStore = useConfigStore()
 
-
-
-async function installApp() {
-  console.log('deferredPrompt.value', deferredPrompt.value);
-  const promptEvent = deferredPrompt.value as any
-  if (!promptEvent)
-    return
-
-  promptEvent.prompt()
-
-  const result = await promptEvent.userChoice
-  if (result.outcome === 'accepted')
-    console.log('✅ User accepted the install prompt')
-  else
-    console.log('❌ User dismissed the install prompt')
-
-  deferredPrompt.value = null
-}
-
+// Check if the app is launched in standalone mode
 onMounted(() => {
-  window.addEventListener('beforeinstallprompt', (e: Event) => {
-    console.log('eeeee', e);
-    e.preventDefault()
-    deferredPrompt.value = e
-  })
+  if (window.matchMedia('(display-mode: standalone)').matches) {
+    console.log('Launched as PWA')
+  }
 })
 </script>
 
@@ -49,7 +27,7 @@ onMounted(() => {
   <VLocaleProvider :rtl="configStore.isAppRTL">
     <!-- ℹ️ This is required to set the background color of active nav link based on currently active global theme's primary -->
     <VApp :style="`--v-global-theme-primary: ${hexToRgb(global.current.value.colors.primary)}`">
-      <!-- <VBtn @click="installApp" color="primary">Install App</VBtn> -->
+      <PWAInstallPrompt />
       <RouterView />
 
       <ScrollToTop />
