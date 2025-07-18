@@ -8,6 +8,7 @@ const CancelToken = axios.CancelToken;
 let cancel;
 
 
+// TODO: Make it dynamic URL fro .env
 const baseURL = `https://drf-blog-system-production.up.railway.app/api/`;
 
 

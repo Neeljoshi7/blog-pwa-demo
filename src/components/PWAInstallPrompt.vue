@@ -1,10 +1,28 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 
 const deferredPrompt = ref<BeforeInstallPromptEvent | null>(null);
 const showInstallButton = ref(false);
 const isInstalling = ref(false);
 const errorMessage = ref<string | null>(null);
+
+// Check if the device is iOS
+const isIos = computed(() => {
+  const userAgent = window.navigator.userAgent.toLowerCase();
+  return /iphone|ipad|ipod/.test(userAgent);
+});
+
+// Check if in standalone mode
+const isInStandaloneMode = computed(() => 
+  (window.matchMedia('(display-mode: standalone)').matches) || 
+  ((window.navigator as any).standalone) ||
+  document.referrer.includes('android-app://')
+);
+
+// Check if the device is mobile
+const isMobile = computed(() => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+});
 
 const handleBeforeInstallPrompt = (e: Event) => {
   console.log('beforeinstallprompt event fired');
@@ -26,19 +44,29 @@ const handleAppInstalled = () => {
 onMounted(() => {
   console.log('PWAInstallPrompt component mounted');
   
-  // Check if the browser supports the beforeinstallprompt event
+  // Check if the app is already installed
+  if (isInStandaloneMode.value) {
+    console.log('App is running in standalone mode');
+    return;
+  }
+  
+  // For iOS devices, show the install button if not in standalone mode
+  if (isIos.value && isMobile.value) {
+    console.log('iOS device detected, showing custom install prompt');
+    showInstallButton.value = true;
+    return;
+  }
+  
+  // For other devices that support beforeinstallprompt
   if ('BeforeInstallPromptEvent' in window) {
     console.log('Browser supports beforeinstallprompt event');
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-} else {
-      window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    // console.warn('Browser does not support beforeinstallprompt event');
   }
 
   // Listen for app installation
   window.addEventListener('appinstalled', handleAppInstalled);
   
-  // Check if the app is already installed
+  // Check if the app is already installed using getInstalledRelatedApps
   checkIfAppIsInstalled();
 });
 
@@ -66,6 +94,22 @@ const checkIfAppIsInstalled = () => {
 const installApp = async () => {
   console.log('Install button clicked');
   
+  // For iOS, show instructions
+  if (isIos.value) {
+    // Create and show iOS installation instructions
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    
+    if (isSafari) {
+      // For Safari on iOS
+      alert('To install this app, tap the share icon and then "Add to Home Screen".');
+    } else {
+      // For other browsers on iOS
+      alert('To install this app, tap the menu button and then "Add to Home Screen".');
+    }
+    return;
+  }
+  
+  // For non-iOS devices that support beforeinstallprompt
   if (!deferredPrompt.value) {
     console.error('No deferred prompt available');
     errorMessage.value = 'Installation is not available right now. Please try again later.';
@@ -92,6 +136,7 @@ const installApp = async () => {
     if (outcome === 'accepted') {
       console.log('User accepted the install prompt');
       // The prompt was accepted, the browser will handle the installation
+      showInstallButton.value = false;
     } else {
       console.log('User dismissed the install prompt');
     }
@@ -134,7 +179,7 @@ interface BeforeInstallPromptEvent extends Event {
 </script>
 
 <template>
-  <div v-if="showInstallButton" class="pwa-install-prompt">
+  <div v-if="showInstallButton && !isInStandaloneMode" class="pwa-install-prompt">
     <div class="pwa-install-content">
       <p>Install this app for a better experience</p>
       <button 

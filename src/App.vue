@@ -19,6 +19,7 @@ const configStore = useConfigStore()
 onMounted(() => {
   if (window.matchMedia('(display-mode: standalone)').matches) {
     console.log('Launched as PWA')
+    configStore.isPWA = true;
   }
 })
 </script>
