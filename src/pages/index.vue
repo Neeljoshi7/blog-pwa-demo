@@ -4,7 +4,7 @@
       class="mb-6"
       title="Kick start your project 🚀"
     >
-      <VCardText>All the best for your new project.</VCardText>
+      <VCardText class="text-red-500">All the best for your new project.</VCardText>
       <VCardText>
         Please make sure to read our <a
           href="https://demos.pixinvent.com/vuexy-vuejs-admin-template/documentation/"

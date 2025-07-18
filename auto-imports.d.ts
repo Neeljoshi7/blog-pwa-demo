@@ -54,6 +54,8 @@ declare global {
   const getActivePinia: typeof import('pinia')['getActivePinia']
   const getCurrentInstance: typeof import('vue')['getCurrentInstance']
   const getCurrentScope: typeof import('vue')['getCurrentScope']
+  const getHTTPGetResponse: typeof import('./src/composables/useHTTPMethods')['getHTTPGetResponse']
+  const getHTTPPostResponse: typeof import('./src/composables/useHTTPMethods')['getHTTPPostResponse']
   const h: typeof import('vue')['h']
   const hexToRgb: typeof import('./src/@core/utils/colorConverter')['hexToRgb']
   const ignorableWatch: typeof import('@vueuse/core')['ignorableWatch']
@@ -420,6 +422,8 @@ declare module 'vue' {
     readonly getActivePinia: UnwrapRef<typeof import('pinia')['getActivePinia']>
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
+    readonly getHTTPGetResponse: UnwrapRef<typeof import('./src/composables/useHTTPMethods')['getHTTPGetResponse']>
+    readonly getHTTPPostResponse: UnwrapRef<typeof import('./src/composables/useHTTPMethods')['getHTTPPostResponse']>
     readonly h: UnwrapRef<typeof import('vue')['h']>
     readonly hexToRgb: UnwrapRef<typeof import('./src/@core/utils/colorConverter')['hexToRgb']>
     readonly ignorableWatch: UnwrapRef<typeof import('@vueuse/core')['ignorableWatch']>

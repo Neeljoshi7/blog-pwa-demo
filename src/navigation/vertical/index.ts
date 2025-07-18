@@ -1,3 +1,4 @@
+
 export default [
   {
     title: 'Home',
@@ -5,8 +6,8 @@ export default [
     icon: { icon: 'tabler-smart-home' },
   },
   {
-    title: 'Second page',
-    to: { name: 'second-page' },
+    title: 'Blogs',
+    to: { name: 'blogs' },
     icon: { icon: 'tabler-file' },
   },
 ]
