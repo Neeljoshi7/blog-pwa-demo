@@ -42,6 +42,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt',
       includeAssets: ['favicon.svg', 'robots.txt'],
+      workbox: {
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024, // 4MB
+      },
       manifest: {
         name: 'Your App Name',
         short_name: 'AppName',
