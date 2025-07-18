@@ -1,7 +1,7 @@
 import axios from "axios";
 // import CryptoJS from "crypto-js";
-// import { toast } from "vue3-toastify";
-// import "vue3-toastify/dist/index.css";
+import { toast } from "vue3-toastify";
+import "vue3-toastify/dist/index.css";
 
 
 const CancelToken = axios.CancelToken;
@@ -29,14 +29,14 @@ axiosIns.interceptors.response.use(
 
        const rawData = response.data;
 //TODO: ADD GLOABL TOAST 
-    //    if (config.showErrorPopup !== false) {
-    //     //    toast(rawData.message, {
-    //     //        theme: "colored",
-    //     //        type: "success",
-    //     //        transition: "slide",
-    //     //        dangerouslyHTMLString: true,
-    //     //    });
-    //    }
+    // if (config.showErrorPopup !== false) {
+    //  toast(rawData.message, {
+    //     theme: "colored",
+    //     type: "success",
+    //     transition: "slide",
+    //     dangerouslyHTMLString: true,
+    // });
+    // }
 
 
        return rawData; // Return the parsed data
@@ -44,17 +44,15 @@ axiosIns.interceptors.response.use(
    async error => {
        const rawData = error?.response?.data || null;
 
-       if (error && error.status && error?.status !== 200) {
-
-        // TODO: Add global Error toast here
+    //    if (error && error.status && error?.status !== 200) {
         
-        //    toast(error.message, {
-        //        theme: "colored",
-        //        type: "error",
-        //        transition: "slide",
-        //        dangerouslyHTMLString: true,
-        //    });
-       }
+    //     toast(error.message, {
+    //         theme: "colored",
+    //         type: "error",
+    //         transition: "slide",
+    //         dangerouslyHTMLString: true,
+    //     });
+    //    }
 
 
        return rawData; // Reject the promise so the component can also handle it

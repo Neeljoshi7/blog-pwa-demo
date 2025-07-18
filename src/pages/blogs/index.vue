@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getHTTPGetResponse } from "@/composables/useHTTPMethods";
+import { getHTTPGetResponse, getHTTPDeleteResponse } from "@/composables/useHTTPMethods";
 import moment from "moment";
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
@@ -30,8 +30,11 @@ const editBlog = (id: number) => {
   router.push(`/blogs/edit/${id}`);
 }
 
-const deleteBlog = (id: number) => {
-  console.log(id);
+const deleteBlog = async (id: number) => {
+  const response = await getHTTPDeleteResponse(`/blogs/${id}/`);
+  if (response) {
+    getBlogs()
+  }
 }
 
 onMounted(async () => {

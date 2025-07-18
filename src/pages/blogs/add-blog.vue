@@ -10,7 +10,7 @@ const formData = ref({
     title: '',
     description: '',
     content: '',
-    seo_meta_tags: 'vghsd, dcsdcsd, sdcsdc, sdcsdc',
+    seo_meta_tags: '',
     seo_description: ''
 })
 
@@ -78,10 +78,16 @@ const handleSubmit = async () => {
                         </VCol>
 
                         <VCol cols="12" md="6">
-                            <VCombobox label="SEO Meta Tags" clearable multiple chips
+                            <!-- <VCombobox v-model="formData.seo_meta_tags" label="SEO Meta Tags" clearable multiple chips
                                 hint="Type and press enter to add multiple tags"
                                 :rules="[v => (v && v.length > 0) || 'At least one SEO Meta Tag is required']"
-                                required />
+                                required /> -->
+                                <VTextField 
+                                    v-model="formData.seo_meta_tags" 
+                                    label="SEO Meta Tags" 
+                                    hint="Enter tags separated by commas (e.g., tag1, tag2, tag3)"
+                                    :rules="[v => !!v || 'SEO Meta Tags are required']" 
+                                    required />
                         </VCol>
 
                         <VCol cols="12" md="6">

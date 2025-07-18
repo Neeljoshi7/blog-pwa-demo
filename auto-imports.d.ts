@@ -54,8 +54,11 @@ declare global {
   const getActivePinia: typeof import('pinia')['getActivePinia']
   const getCurrentInstance: typeof import('vue')['getCurrentInstance']
   const getCurrentScope: typeof import('vue')['getCurrentScope']
+  const getHTTPDeleteResponse: typeof import('./src/composables/useHTTPMethods')['getHTTPDeleteResponse']
   const getHTTPGetResponse: typeof import('./src/composables/useHTTPMethods')['getHTTPGetResponse']
+  const getHTTPPatchResponse: typeof import('./src/composables/useHTTPMethods')['getHTTPPatchResponse']
   const getHTTPPostResponse: typeof import('./src/composables/useHTTPMethods')['getHTTPPostResponse']
+  const getHTTPPutResponse: typeof import('./src/composables/useHTTPMethods')['getHTTPPutResponse']
   const h: typeof import('vue')['h']
   const hexToRgb: typeof import('./src/@core/utils/colorConverter')['hexToRgb']
   const ignorableWatch: typeof import('@vueuse/core')['ignorableWatch']
@@ -66,6 +69,7 @@ declare global {
   const isDefined: typeof import('@vueuse/core')['isDefined']
   const isEmpty: typeof import('./src/@core/utils/helpers')['isEmpty']
   const isEmptyArray: typeof import('./src/@core/utils/helpers')['isEmptyArray']
+  const isLoading: typeof import('./src/composables/useHTTPMethods')['isLoading']
   const isNullOrUndefined: typeof import('./src/@core/utils/helpers')['isNullOrUndefined']
   const isObject: typeof import('./src/@core/utils/helpers')['isObject']
   const isProxy: typeof import('vue')['isProxy']
@@ -422,8 +426,11 @@ declare module 'vue' {
     readonly getActivePinia: UnwrapRef<typeof import('pinia')['getActivePinia']>
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
+    readonly getHTTPDeleteResponse: UnwrapRef<typeof import('./src/composables/useHTTPMethods')['getHTTPDeleteResponse']>
     readonly getHTTPGetResponse: UnwrapRef<typeof import('./src/composables/useHTTPMethods')['getHTTPGetResponse']>
+    readonly getHTTPPatchResponse: UnwrapRef<typeof import('./src/composables/useHTTPMethods')['getHTTPPatchResponse']>
     readonly getHTTPPostResponse: UnwrapRef<typeof import('./src/composables/useHTTPMethods')['getHTTPPostResponse']>
+    readonly getHTTPPutResponse: UnwrapRef<typeof import('./src/composables/useHTTPMethods')['getHTTPPutResponse']>
     readonly h: UnwrapRef<typeof import('vue')['h']>
     readonly hexToRgb: UnwrapRef<typeof import('./src/@core/utils/colorConverter')['hexToRgb']>
     readonly ignorableWatch: UnwrapRef<typeof import('@vueuse/core')['ignorableWatch']>
@@ -433,6 +440,7 @@ declare module 'vue' {
     readonly isDefined: UnwrapRef<typeof import('@vueuse/core')['isDefined']>
     readonly isEmpty: UnwrapRef<typeof import('./src/@core/utils/helpers')['isEmpty']>
     readonly isEmptyArray: UnwrapRef<typeof import('./src/@core/utils/helpers')['isEmptyArray']>
+    readonly isLoading: UnwrapRef<typeof import('./src/composables/useHTTPMethods')['isLoading']>
     readonly isNullOrUndefined: UnwrapRef<typeof import('./src/@core/utils/helpers')['isNullOrUndefined']>
     readonly isObject: UnwrapRef<typeof import('./src/@core/utils/helpers')['isObject']>
     readonly isProxy: UnwrapRef<typeof import('vue')['isProxy']>
