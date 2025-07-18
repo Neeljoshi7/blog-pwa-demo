@@ -8,7 +8,7 @@ const CancelToken = axios.CancelToken;
 let cancel;
 
 
-const baseURL = `${import.meta.env.VITE_BASE_URL}`;
+const baseURL = `https://drf-blog-system-production.up.railway.app/api/`;
 
 
 const axiosIns = axios.create({
