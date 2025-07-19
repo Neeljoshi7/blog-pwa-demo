@@ -21,7 +21,8 @@ const fetchBlogData = async () => {
                 seo_meta_tags: response.seo_meta_tags || '',
                 seo_description: response.seo_description || '',
                 created_at: response.created_at || '',
-                updated_at: response.updated_at || ''
+                updated_at: response.updated_at || '',
+                is_active: response.is_active || false
             }
         }
     } catch (err) {
@@ -85,6 +86,17 @@ onMounted(() => {
 
                     <div class="mb-6">
                         <p class="text-body-1">{{ blog.description }}</p>
+                    </div>
+
+                    <div class="mb-6 d-flex align-center">
+                        <VSwitch
+                            :model-value="blog.is_active"
+                            :label="blog.is_active ? 'Active' : 'Inactive'"
+                            color="success"
+                            readonly
+                            hide-details
+                            class="mt-0"
+                        />
                     </div>
 
                     <VDivider class="my-6" />

@@ -1,19 +1,26 @@
 <script setup lang="ts">
 import TipTapEditor from '@/components/editor/TipTapEditor.vue'
 import { getHTTPGetResponse, getHTTPPutResponse } from '@/composables/useHTTPMethods'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { addPendingOperation, getCachedBlog, cacheBlogs } from '@/services/offlineDatabase'
+import { toast } from 'vue3-toastify'
+import 'vue3-toastify/dist/index.css';
 
 const route = useRoute()
 const router = useRouter()
-const blogId = route.params.id
+const blogId = Number(route.params.id)
+const isOnline = ref(navigator.onLine)
 
 const formData = ref({
+    id: blogId,
     title: '',
     description: '',
     content: '',
     seo_meta_tags: '',
-    seo_description: ''
+    seo_description: '',
+    is_active: false,
+    isSynced: true
 })
 
 const isFormValid = ref(false)
@@ -29,50 +36,167 @@ const validateContent = () => {
 
 const fetchBlogData = async () => {
     try {
-        isLoading.value = true
-        const response = await getHTTPGetResponse(`/blogs/${blogId}/`)
-        if (response) {
-            formData.value = {
-                title: response.title || '',
-                description: response.description || '',
-                content: response.content || '',
-                seo_meta_tags: response.seo_meta_tags || '',
-                seo_description: response.seo_description || ''
+        isLoading.value = true;
+        
+        if (isOnline.value) {
+            // Try to fetch from server first
+            const response = await getHTTPGetResponse(`/blogs/${blogId}/`);
+            if (response?.data) {
+                const blogData = response.data;
+                formData.value = {
+                    id: blogData.id,
+                    title: blogData.title || '',
+                    description: blogData.description || '',
+                    content: blogData.content || '',
+                    seo_meta_tags: blogData.seo_meta_tags || '',
+                    seo_description: blogData.seo_description || '',
+                    is_active: blogData.is_active || false,
+                    isSynced: true
+                };
+                // Cache the blog data for offline use
+                await cacheBlogs([blogData]);
+            }
+        } else {
+            // Try to load from cache if offline
+            const cachedBlog = await getCachedBlog(blogId);
+            if (cachedBlog) {
+                formData.value = {
+                    ...cachedBlog,
+                    isSynced: false // Mark as not synced if loaded from cache
+                };
+                showWarning('You are currently offline. Showing cached data.');
+            } else {
+                error.value = 'Cannot load blog data while offline. Please check your connection.';
             }
         }
     } catch (err) {
-        console.error('Error fetching blog data:', err)
-        error.value = 'Failed to load blog data. Please try again.'
+        console.error('Error fetching blog data:', err);
+        
+        // Try to load from cache if online fetch fails
+        if (isOnline.value) {
+            const cachedBlog = await getCachedBlog(blogId);
+            if (cachedBlog) {
+                formData.value = {
+                    ...cachedBlog,
+                    isSynced: false
+                };
+                showWarning('Showing cached data due to network error.');
+                return;
+            }
+        }
+        
+        error.value = 'Failed to load blog data. ' + 
+            (isOnline.value ? 'Please try again.' : 'You are currently offline.');
     } finally {
-        isLoading.value = false
+        isLoading.value = false;
     }
-}
+};
+
+// Helper function to show error message
+const showError = (message: string) => {
+    toast.error(message, {
+        theme: 'colored',
+        autoClose: 5000,
+        hideProgressBar: false,
+        position: 'top-right',
+        pauseOnHover: true,
+    });
+};
+
+// Helper function to show success message
+const showSuccess = (message: string) => {
+    toast.success(message, {
+        theme: 'colored',
+        autoClose: 3000,
+        hideProgressBar: false,
+        position: 'top-right',
+        pauseOnHover: true,
+    });
+};
+
+// Helper function to show warning message
+const showWarning = (message: string) => {
+    toast.warning(message, {
+        theme: 'colored',
+        autoClose: 5000,
+        hideProgressBar: false,
+        position: 'top-right',
+        pauseOnHover: true,
+    });
+};
+
+// Handle network status changes
+const handleNetworkChange = () => {
+    isOnline.value = navigator.onLine;
+};
 
 const handleSubmit = async () => {
-    hasSubmitted.value = true
+    hasSubmitted.value = true;
 
     // Validate all required fields
     if (!formData.value.title || !formData.value.description || !validateContent() ||
-        !formData.value.seo_meta_tags?.length || !formData.value.seo_description) {
-        return
+        !formData.value.seo_meta_tags || !formData.value.seo_description) {
+        return;
     }
 
-    isSubmitting.value = true
-    error.value = ''
+    isSubmitting.value = true;
+    error.value = '';
 
     try {
-        const response = await getHTTPPutResponse(`/blogs/${blogId}/`, formData.value, true)
-        if (response) {
-            // Redirect to blog list after successful update
-            router.push('/blogs')
+        if (isOnline.value) {
+            // Try to submit directly when online
+            const response = await getHTTPPutResponse(
+                `/blogs/${blogId}/`, 
+                formData.value, 
+                true
+            );
+
+            if (response?.data) {
+                // Update local cache with the latest data
+                await cacheBlogs([{
+                    ...formData.value,
+                    isSynced: true,
+                    updated_at: new Date().toISOString()
+                }]);
+                
+                showSuccess('Blog post updated successfully!');
+                router.push('/blogs');
+            }
+        } else {
+            // Queue for sync when online
+            await addPendingOperation(
+                'UPDATE',
+                { 
+                    ...formData.value,
+                    updated_at: new Date().toISOString()
+                },
+                '/blogs/'
+            );
+            
+            // Update local cache immediately for better UX
+            await cacheBlogs([{
+                ...formData.value,
+                isSynced: false,
+                updated_at: new Date().toISOString()
+            }]);
+            
+            showSuccess('Changes saved offline. They will be synced when you\'re back online.');
+            router.push('/blogs');
         }
     } catch (err) {
-        console.error('Error updating blog:', err)
-        error.value = 'Failed to update blog. Please try again.'
+        console.error('Error updating blog:', err);
+        
+        if (isOnline.value) {
+            error.value = 'Failed to update blog. Please try again.';
+            showError(error.value);
+        } else {
+            error.value = 'Failed to save changes. Please check your connection and try again.';
+            showError(error.value);
+        }
     } finally {
-        isSubmitting.value = false
+        isSubmitting.value = false;
     }
-}
+};
 
 onMounted(() => {
     fetchBlogData()
@@ -80,27 +204,15 @@ onMounted(() => {
 </script>
 
 <template>
-    <div>
-        <VCard>
-            <VCardItem class="d-flex align-center justify-space-between">
-                <VCardTitle>Edit Blog Post</VCardTitle>
-            </VCardItem>
-
-            <VCardText>
-                <VAlert
-                    v-if="error"
-                    type="error"
-                    variant="tonal"
-                    class="mb-4"
-                >
-                    {{ error }}
-                </VAlert>
-
-                <VProgressLinear
-                    v-if="isLoading"
-                    indeterminate
-                    color="primary"
-                    class="mb-4"
+  <div>
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-semibold">Edit Blog Post</h1>
+      <div v-if="!isOnline" class="flex items-center bg-yellow-100 text-yellow-800 text-sm px-3 py-1 rounded-full">
+        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+        </svg>
+        <span>Offline Mode</span>
+      </div>
                 />
 
                 <VForm v-else v-model="isFormValid" @submit.prevent="handleSubmit">
@@ -148,9 +260,17 @@ onMounted(() => {
                         <VCol cols="12" md="6">
                             <VTextField 
                                 v-model="formData.seo_description" 
-                                label="SEO Meta Description"
-                                :rules="[v => !!v || 'SEO Meta Description is required']" 
-                                required 
+                                label="SEO Description"
+                                :rules="[v => !!v || 'SEO Description is required']"
+                                required
+                                class="mb-4"
+                            />
+                            <VSwitch
+                                v-model="formData.is_active"
+                                label="Active Status"
+                                color="success"
+                                class="mt-2"
+                                hide-details
                             />
                         </VCol>
 
